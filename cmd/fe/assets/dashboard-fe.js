@@ -457,7 +457,7 @@ function processGroupStats(codis_stats) {
     var group_array = codis_stats.group.models;
     var group_stats = codis_stats.group.stats;
     var keys = 0, memory = 0;
-    var dbkeyRegexp = /db\d+/
+    var dbkeyRegexp = /db\d+/;
     for (var i = 0; i < group_array.length; i++) {
         var g = group_array[i];
         if (g.promoting.state) {
@@ -492,15 +492,26 @@ function processGroupStats(codis_stats) {
             } else if (s.error) {
                 x.status = "ERROR";
             } else {
+                var count = 0;
+                var row1 = [];
+                var row2 = [];
                 for (var field in s.stats) {
-                    if (dbkeyRegexp.test(field)) {
-                        var v = parseInt(s.stats[field].split(",")[0].split("=")[1], 10);
+                    if (field === 'kv keys' || field === 'hash keys' || field === 'list keys' || field === 'zset keys' || field === 'set keys') {
+                        var v = parseInt(s.stats[field], 10);
                         if (j == 0) {
                             keys += v;
                         }
-                        x.keys.push(field+ ":" + s.stats[field]);
+                        count += v;
+                        if (field === 'zset keys' || field === 'set keys') {
+                            row2.push(field.split(" ")[0]+ ":" + s.stats[field])
+                        } else {
+                            row1.push(field.split(" ")[0]+ ":" + s.stats[field])
+                        }
                     }
                 }
+                row2.push("count:" + count)
+                x.keys.push(row1.join(", "));
+                x.keys.push(row2.join(", "));
                 if (s.stats["used_memory"]) {
                     var v = parseInt(s.stats["used_memory"], 10);
                     if (j == 0) {

@@ -207,20 +207,28 @@ func (c *Client) SetMaster(master string) error {
 	if err != nil {
 		return errors.Trace(err)
 	}
-	c.Send("MULTI")
-	c.Send("CONFIG", "SET", "masterauth", c.Auth)
-	c.Send("SLAVEOF", host, port)
-	c.Send("CONFIG", "REWRITE")
-	c.Send("CLIENT", "KILL", "TYPE", "normal")
-	values, err := redigo.Values(c.Do("EXEC"))
+	//c.Send("MULTI")
+	//c.Send("CONFIG", "SET", "masterauth", c.Auth)
+	//c.Send("SLAVEOF", host, port)
+	//c.Send("CONFIG", "REWRITE")
+	//c.Send("CLIENT", "KILL", "TYPE", "normal")
+	//values, err := redigo.Values(c.Do("EXEC"))
+	//if err != nil {
+	//	return errors.Trace(err)
+	//}
+	//for _, r := range values {
+	//	if err, ok := r.(redigo.Error); ok {
+	//		return errors.Trace(err)
+	//	}
+	//}
+	//return nil
+
+
+	_, err = c.Do("SLAVEOF", host, port)
 	if err != nil {
 		return errors.Trace(err)
 	}
-	for _, r := range values {
-		if err, ok := r.(redigo.Error); ok {
-			return errors.Trace(err)
-		}
-	}
+	c.Do("CONFIG", "REWRITE")
 	return nil
 }
 
